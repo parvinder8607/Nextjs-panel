@@ -1,6 +1,29 @@
+#!/usr/bin/env node
+
 const fs = require("fs");
 const path = require("path");
 const { getDMMF } = require("@prisma/sdk");
+
+const resourceName = process.argv[2];
+if (!resourceName) {
+  console.error("❌ Please provide a resource name. Example: node ./scripts/create-resource.js user");
+  process.exit(1);
+}
+
+const pascalCase = resourceName[0].toUpperCase() + resourceName.slice(1);
+const className = `${pascalCase}Resource`;
+const fileName = `${className}.tsx`;
+const resourceDir = path.join(__dirname, "..", "src", "resources");
+const filePath = path.join(resourceDir, fileName);
+const indexPath = path.join(resourceDir, "index.ts");
+const schemaPath = path.join(__dirname, "..", "prisma", "schema.prisma");
+
+if (!fs.existsSync(schemaPath)) {
+  console.error("❌ schema.prisma not found. Expected at prisma/schema.prisma");
+  process.exit(1);
+}
+
+const schema = fs.readFileSync(schemaPath, "utf8");
 
 function capitalize(str) {
   return str[0].toUpperCase() + str.slice(1);
@@ -13,31 +36,10 @@ function getInputType(type) {
   return "text";
 }
 
-module.exports = async function createResource(resourceName) {
-  if (!resourceName) {
-    console.error("❌ Please provide a resource name. Example: npx nextjs-panel make:resource user");
-    process.exit(1);
-  }
-
-  const projectRoot = process.cwd(); // User's project directory
-  const pascalCase = capitalize(resourceName);
-  const className = `${pascalCase}Resource`;
-  const fileName = `${className}.tsx`;
-
-  const resourceDir = path.join(projectRoot, "src", "resources");
-  const filePath = path.join(resourceDir, fileName);
-  const indexPath = path.join(resourceDir, "index.ts");
-  const schemaPath = path.join(projectRoot, "prisma", "schema.prisma");
-
-  if (!fs.existsSync(schemaPath)) {
-    console.error("❌ schema.prisma not found. Expected at prisma/schema.prisma");
-    process.exit(1);
-  }
-
-  const schema = fs.readFileSync(schemaPath, "utf8");
+async function main() {
   const dmmf = await getDMMF({ datamodel: schema });
-
   const model = dmmf.datamodel.models.find((m) => m.name.toLowerCase() === resourceName.toLowerCase());
+
   if (!model) {
     console.error(`❌ Model "${resourceName}" not found in schema.prisma`);
     process.exit(1);
@@ -45,19 +47,23 @@ module.exports = async function createResource(resourceName) {
 
   const fields = model.fields.filter((f) => f.name !== "id");
 
+  // Generate table columns
   const tableColumns = fields
     .map((f) => `      { key: "${f.name}", label: "${capitalize(f.name)}" }`)
     .concat('      { key: "actions", label: "Actions" }')
     .join(",\n");
 
+  // Generate form fields
   const formFields = fields
     .map((f) => `      { name: "${f.name}", label: "${capitalize(f.name)}", type: "${getInputType(f.type)}" }`)
     .join(",\n");
 
+  // Generate import schema
   const importSchema = fields
     .map((f) => `      { name: "${f.name}", label: "${capitalize(f.name)}" }`)
     .join(",\n");
 
+  // Template for the resource file
   const resourceTemplate = `import { Resource } from "@/lib/Resource";
 
 export class ${className} extends Resource {
@@ -91,11 +97,11 @@ ${importSchema}
       import: "/api/${resourceName}/import",
     };
   }
+
 }
 `;
 
-  if (!fs.existsSync(resourceDir)) fs.mkdirSync(resourceDir, { recursive: true });
-
+  // Write resource file
   if (fs.existsSync(filePath)) {
     console.log(`⚠️ ${fileName} already exists.`);
   } else {
@@ -103,7 +109,8 @@ ${importSchema}
     console.log(`✅ Created ${fileName}`);
   }
 
-  let indexContent = fs.existsSync(indexPath) ? fs.readFileSync(indexPath, "utf8") : "";
+  // Update index.ts
+  let indexContent = fs.readFileSync(indexPath, "utf8");
 
   const importLine = `import { ${className} } from "./${className}";`;
   if (!indexContent.includes(importLine)) {
@@ -122,11 +129,13 @@ ${importSchema}
   fs.writeFileSync(indexPath, indexContent);
   console.log("✅ Injected into index.ts");
 
-  // API route generation
-  const apiDir = path.join(projectRoot, "src", "app", "api", resourceName);
+  // --- Generate API route file ---
+  const apiDir = path.join(__dirname, "..", "src", "app", "api", resourceName);
   const apiFile = path.join(apiDir, "route.ts");
 
-  const createFields = fields.map((f) => `      ${f.name}: data.${f.name},`).join("\n");
+  const createFields = fields
+    .map((f) => `      ${f.name}: data.${f.name},`)
+    .join("\n");
 
   const apiTemplate = `import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@/generated/prisma';
@@ -149,7 +158,9 @@ ${createFields}
 }
 `;
 
-  if (!fs.existsSync(apiDir)) fs.mkdirSync(apiDir, { recursive: true });
+  if (!fs.existsSync(apiDir)) {
+    fs.mkdirSync(apiDir, { recursive: true });
+  }
 
   if (fs.existsSync(apiFile)) {
     console.log("⚠️ API route already exists.");
@@ -157,4 +168,6 @@ ${createFields}
     fs.writeFileSync(apiFile, apiTemplate);
     console.log("✅ Created API route at " + path.relative(process.cwd(), apiFile));
   }
-};
+}
+
+main();

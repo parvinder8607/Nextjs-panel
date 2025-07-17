@@ -1,21 +1,67 @@
 {
-  "name": "panel",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "make:resource": "node scripts/create-resource.js"
+  "name": "nextjs-panel",
+  "version": "1.0.8",
+  "description": "Schema-based admin panel generator for Next.js using Prisma and React components.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "bin": {
+    "nextjs-panel": "./cli.js"
   },
+  "files": [
+    "dist",
+    "lib",
+    "src/resources",
+    "scripts",
+    "src/app/admin"
+  ],
+  "sideEffects": [
+    "./dist/panel.css"
+  ],
+  "scripts": {
+    "dev": "next dev",
+    "start": "next start",
+    "next:build": "next build",
+    "lint": "next lint",
+    "make:resource": "node scripts/create-resource.js",
+    "build": "tsc -p tsconfig.build.json",
+    "postinstall": "node ./scripts/postinstall.js",
+    "prepare": "npm run build"
+  },
+  "exports": {
+    ".": {
+      "import": "./lib/index.js",
+      "require": "./lib/index.js",
+      "types": "./lib/index.d.ts"
+    },
+    "./scripts/postinstall": {
+      "require": "./scripts/postinstall.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/parvinder8607/Nextjs-panel.git"
+  },
+  "author": "Parvinder Singh",
+  "license": "MIT",
+  "keywords": [
+    "nextjs",
+    "admin-panel",
+    "dashboard",
+    "prisma",
+    "generator",
+    "typescript",
+    "schema"
+  ],
   "dependencies": {
     "@prisma/client": "^6.11.1",
     "@prisma/sdk": "^3.15.2",
-    "next": "15.3.5",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
     "react-icons": "^5.5.0"
+  },
+  "peerDependencies": {
+    "next": ">=14.2.30",
+    "prisma": "^6.11.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -25,7 +71,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
-    "prisma": "^6.11.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

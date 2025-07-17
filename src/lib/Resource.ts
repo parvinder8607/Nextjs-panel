@@ -1,9 +1,11 @@
+import { ReactNode } from "react";
 import { ResourceRegistry } from "./ResourceRegistry";
 import type { TableColumn, FormField, ImportField } from "@/lib/Types";
 
 export abstract class Resource {
   abstract name: string;
   abstract label: string;
+  icon?: ReactNode;
 
   //  Register Resource using class but not working currently
   // constructor() {   

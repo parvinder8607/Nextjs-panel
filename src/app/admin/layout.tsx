@@ -1,4 +1,5 @@
-import Sidebar from "@/components/Sidebar";
+import {Sidebar} from "nextjs-panel";
+import { registeredResources } from "@/resources";
 
 export default function Layout({
     children,
@@ -8,7 +9,7 @@ export default function Layout({
     return (
       
           <div className="flex">
-          <Sidebar />
+          <Sidebar resources={registeredResources} />
           {children}
           </div>
         

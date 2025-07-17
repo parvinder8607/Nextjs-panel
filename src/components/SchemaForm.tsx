@@ -2,8 +2,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function SchemaForm({ schema, api, params }: { schema: any[]; api: any, params: any }) {
-  const [formData, setFormData] = useState({});
+ function SchemaForm({ schema, api, params }: { schema: any[]; api: any, params: any }) {
+  const [formData, setFormData] = useState<any>({});
   const router = useRouter();
   
 
@@ -11,22 +11,7 @@ export default function SchemaForm({ schema, api, params }: { schema: any[]; api
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setThumbnail(file);
-      setPreviewUrl(URL.createObjectURL(file));
-    }
-  };
-  
-  const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      setThumbnail(file);
-      setPreviewUrl(URL.createObjectURL(file));
-    }
-  };
+ 
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -69,36 +54,7 @@ export default function SchemaForm({ schema, api, params }: { schema: any[]; api
               className="mt-1 block w-full p-2 border rounded-md border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
           )}
-          {field.type === "file" && (
-            <div
-            onDrop={handleFileDrop}
-            onDragOver={(e) => e.preventDefault()}
-            onClick={() => document.getElementById("fileInput")?.click()}
-            className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center cursor-pointer bg-gray-50 hover:bg-gray-100"
-          >
-            <input
-              type="file"
-              accept="image/*"
-              id="fileInput"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-            <p className="text-sm text-gray-500">
-              Drag & Drop your files or <span className="text-blue-600 underline">Browse</span>
-            </p>
           
-            {previewUrl && (
-              <div className="mt-4">
-                <p className="text-sm text-gray-600 mb-2">Preview:</p>
-                <img
-                  src={previewUrl}
-                  alt="Preview"
-                  className="mx-auto w-full h-42 object-cover border rounded-md shadow-sm"
-                />
-              </div>
-            )}
-                </div>
-          )}
         </div>
       ))}
 
@@ -114,3 +70,5 @@ export default function SchemaForm({ schema, api, params }: { schema: any[]; api
     </form>
   );
 }
+
+export default SchemaForm;
