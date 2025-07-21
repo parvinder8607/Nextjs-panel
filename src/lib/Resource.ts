@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { ResourceRegistry } from "./ResourceRegistry";
 import type { TableColumn, FormField, ImportField } from "@/lib/Types";
 
 export abstract class Resource {
@@ -18,13 +17,11 @@ export abstract class Resource {
 
 
   abstract getFormFields(): FormField[];
-  abstract getImportSchema(): ImportField[];
   abstract getApiRoutes(): {
     list: string;
     create: string;
     update: string;
     delete: string;
-    import: string;
   };
 
  

@@ -47,18 +47,15 @@ module.exports = async function createResource(resourceName) {
 
   const tableColumns = fields
     .map((f) => `      { key: "${f.name}", label: "${capitalize(f.name)}" }`)
-    .concat('      { key: "actions", label: "Actions" }')
     .join(",\n");
 
   const formFields = fields
     .map((f) => `      { name: "${f.name}", label: "${capitalize(f.name)}", type: "${getInputType(f.type)}" }`)
     .join(",\n");
 
-  const importSchema = fields
-    .map((f) => `      { name: "${f.name}", label: "${capitalize(f.name)}" }`)
-    .join(",\n");
+  
 
-  const resourceTemplate = `import { Resource } from "@/lib/Resource";
+  const resourceTemplate = `import { Resource } from "nextjs-panel";
 
 export class ${className} extends Resource {
   name = "${resourceName}";
@@ -76,11 +73,7 @@ ${formFields}
     ];
   }
 
-  getImportSchema() {
-    return [
-${importSchema}
-    ];
-  }
+ 
 
   getApiRoutes() {
     return {
@@ -88,7 +81,6 @@ ${importSchema}
       create: "/api/${resourceName}",
       update: "/api/${resourceName}/:id",
       delete: "/api/${resourceName}/:id",
-      import: "/api/${resourceName}/import",
     };
   }
 }

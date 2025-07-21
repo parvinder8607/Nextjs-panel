@@ -4,7 +4,8 @@ import Link from "next/link";
 
 
 export default async function AdminPage({ params }: { params: { resource: keyof typeof registeredResources } }) {
-    const resource = registeredResources[params.resource];
+  const { resource: resourceKey } = await params;
+  const resource = registeredResources[resourceKey];
   
   if (!resource) return (
     <>

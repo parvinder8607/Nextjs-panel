@@ -4,3 +4,5 @@ node_modules
 prisma/
 public/
 *.log
+scripts/create-resource copy 2.js
+scripts/create-resource copy.js

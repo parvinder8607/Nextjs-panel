@@ -1,6 +1,6 @@
 {
   "name": "nextjs-panel",
-  "version": "1.0.8",
+  "version": "1.0.12",
   "description": "Schema-based admin panel generator for Next.js using Prisma and React components.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -22,7 +22,7 @@
     "start": "next start",
     "next:build": "next build",
     "lint": "next lint",
-    "make:resource": "node scripts/create-resource.js",
+    "make:resource": "node scripts/create-resource_old.js",
     "build": "tsc -p tsconfig.build.json",
     "postinstall": "node ./scripts/postinstall.js",
     "prepare": "npm run build"
