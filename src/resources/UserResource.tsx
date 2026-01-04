@@ -21,6 +21,8 @@ export class UserResource extends Resource {
     ];
   }
 
+   
+
   getImportSchema() {
     return [
       { name: "name", label: "Name" },
