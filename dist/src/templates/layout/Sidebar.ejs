@@ -1,0 +1,28 @@
+import Link from 'next/link';
+// We will generate this registry during 'make:resource'
+import { resourceRegistry } from '../../panel-resources/_registry'; 
+
+export function Sidebar() {
+  return (
+    <aside className="w-64 border-r bg-gray-50 h-screen p-4">
+      <div className="font-bold text-xl mb-8">Admin Panel</div>
+      <nav className="space-y-2">
+        <Link href="/admin" className="block p-2 hover:bg-gray-200 rounded">
+          Dashboard
+        </Link>
+        <div className="text-xs font-semibold text-gray-400 uppercase mt-4 mb-2">
+          Resources
+        </div>
+        {resourceRegistry.map((resource) => (
+          <Link 
+            key={resource.slug} 
+            href={`/admin/${resource.slug}`}
+            className="block p-2 hover:bg-gray-200 rounded capitalize"
+          >
+            {resource.name}
+          </Link>
+        ))}
+      </nav>
+    </aside>
+  );
+}
