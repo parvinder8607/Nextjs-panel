@@ -1,25 +1,48 @@
-import fs from "fs";
-import path from "path";
+import fs from 'fs';
+import path from 'path';
+import { ProjectPaths } from './ProjectPaths';
 
 export class ProjectAnalyzer {
-  root = process.cwd();
+  private static root = ProjectPaths.getRoot();
 
-  hasSrcDir(): boolean {
-    return fs.existsSync(path.join(this.root, "src"));
+  /**
+   * Check if the project uses TypeScript
+   */
+  static isTypeScript(): boolean {
+    return fs.existsSync(path.join(this.root, 'tsconfig.json'));
   }
 
-  usesAppRouter(): boolean {
-    return (
-      fs.existsSync(path.join(this.root, "app")) ||
-      fs.existsSync(path.join(this.root, "src", "app"))
-    );
+  /**
+   * Check if Tailwind CSS is installed in package.json
+   */
+  static hasTailwind(): boolean {
+    const pkgPath = path.join(this.root, 'package.json');
+    if (!fs.existsSync(pkgPath)) return false;
+    
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+    const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+    return !!deps['tailwindcss'];
   }
 
-  usesTypeScript(): boolean {
-    return fs.existsSync(path.join(this.root, "tsconfig.json"));
+  /**
+   * Detect if using App Router (Next.js 13+) or Pages Router
+   */
+  static getRouterType(): 'app' | 'pages' {
+    const appDir = path.join(this.root, 'app');
+    const srcAppDir = path.join(this.root, 'src', 'app');
+    
+    if (fs.existsSync(appDir) || fs.existsSync(srcAppDir)) {
+      return 'app';
+    }
+    return 'pages';
   }
 
-  usesTailwind(): boolean {
-    return fs.existsSync(path.join(this.root, "tailwind.config.js"));
+  /**
+   * Determine file extension for generated files
+   */
+  static getExtension(isJsx: boolean = false): string {
+    const isTs = this.isTypeScript();
+    if (isJsx) return isTs ? 'tsx' : 'jsx';
+    return isTs ? 'ts' : 'js';
   }
 }

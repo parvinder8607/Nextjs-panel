@@ -1,52 +1,78 @@
-// src/cli/commands/setup.ts
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 import { ProjectPaths } from '../../core/ProjectPaths';
 import { FileWriter } from '../../core/FileWriter';
 import { TemplateEngine } from '../../core/TemplateEngine';
+import { ProjectAnalyzer } from '../../core/ProjectAnalyzer';
 
 export function setupCommand() {
-  console.log("⚙️  nextjs-panel setup started...");
+  console.log("🚀 Starting nextjs-panel setup...");
 
-  const appDir = ProjectPaths.getNextAppDir();
   const rootDir = ProjectPaths.getRoot();
+  
+  // 1. Run Environment Checks
+  const isTs = ProjectAnalyzer.isTypeScript();
+  const hasTailwind = ProjectAnalyzer.hasTailwind();
+  const routerType = ProjectAnalyzer.getRouterType();
+  const ext = ProjectAnalyzer.getExtension(true); // 'tsx' or 'jsx'
+  const scriptExt = ProjectAnalyzer.getExtension(false); // 'ts' or 'js'
 
-  // 1. Create Admin Route (e.g., /app/admin)
-  const adminDirPath = path.join(appDir, 'admin');
-  if (!fs.existsSync(adminDirPath)) {
-    fs.mkdirSync(adminDirPath, { recursive: true });
-    // Create a basic layout.tsx for the admin panel
-    // inside setupCommand()
-const adminDir = ProjectPaths.getAdminPanelDir();
+  console.log(`🔎 Detected: ${isTs ? 'TypeScript' : 'JavaScript'}, ${routerType} router, Tailwind: ${hasTailwind}`);
 
-// Generate Layout
-const layoutContent = TemplateEngine.render('layout/PanelLayout.ejs', {});
-FileWriter.write(path.join(adminDir, 'layout.tsx'), layoutContent);
-
-// Generate Sidebar
-const sidebarContent = TemplateEngine.render('layout/Sidebar.ejs', {});
-FileWriter.write(path.join(adminDir, 'Sidebar.tsx'), sidebarContent);
-
-// Generate Page
-const pageContent = TemplateEngine.render('layout/DashboardPage.ejs', {});
-FileWriter.write(path.join(adminDir, 'page.tsx'), pageContent);
-
-// Initialize an empty registry so the imports don't break
-const registryPath = path.join(ProjectPaths.getResourceRegistryDir(), '_registry.ts');
-FileWriter.write(registryPath, `export const resourceRegistry = [];`);
+  // 2. Prisma Setup
+  const prismaSchemaPath = path.join(rootDir, 'prisma', 'schema.prisma');
+  if (!fs.existsSync(prismaSchemaPath)) {
+    console.log("💎 Initializing Prisma...");
+    try {
+      execSync('npx prisma init', { stdio: 'inherit', cwd: rootDir });
+    } catch (e) {
+      console.error("❌ Prisma init failed. Ensure npx is installed.");
+    }
   }
 
-  // 2. Create Resources Folder (where user-defined logic lives)
-  const resourceDir = path.join(rootDir, 'panel-resources');
-  if (!fs.existsSync(resourceDir)) {
-    fs.mkdirSync(resourceDir);
-    console.log("📁 Created /panel-resources for your model configurations");
+  // 3. Create Admin Directory Logic
+  const adminDir = ProjectPaths.getAdminPanelDir();
+  if (!fs.existsSync(adminDir)) {
+    fs.mkdirSync(adminDir, { recursive: true });
+    
+    // Define files to generate
+    const files = [
+      { template: 'layout/PanelLayout.ejs', target: `layout.${ext}` },
+      { template: 'layout/Sidebar.ejs', target: `Sidebar.${ext}` },
+      { template: 'layout/DashboardPage.ejs', target: `page.${ext}` }
+    ];
+
+    files.forEach(file => {
+      const content = TemplateEngine.render(file.template, { 
+        isTs, 
+        hasTailwind, 
+        routerType 
+      });
+      FileWriter.write(path.join(adminDir, file.target), content);
+    });
   }
 
-  // 3. Create Config File (nextjs-panel.config.ts)
-  const configPath = path.join(rootDir, 'nextjs-panel.config.ts');
+  // 4. Resource Registry Initialization
+  // This registry tracks which models are active in the dashboard
+  const registryDir = ProjectPaths.getResourceRegistryDir();
+  if (!fs.existsSync(registryDir)) {
+    fs.mkdirSync(registryDir, { recursive: true });
+  }
+
+  const registryPath = path.join(registryDir, `index.${scriptExt}`);
+  if (!fs.existsSync(registryPath)) {
+    const registryContent = isTs 
+      ? `export const resourceRegistry: any[] = [];` 
+      : `export const resourceRegistry = [];`;
+    FileWriter.write(registryPath, registryContent);
+  }
+
+  // 5. Config File Generation
+  const configPath = path.join(rootDir, `nextjs-panel.config.${scriptExt}`);
   if (!fs.existsSync(configPath)) {
-    const defaultConfig = `
+    const configContent = `
+/** @type {import('nextjs-panel').PanelConfig} */
 export const panelConfig = {
   title: "Admin Panel",
   basePath: "/admin",
@@ -54,8 +80,18 @@ export const panelConfig = {
     primary: "#000000"
   }
 };`;
-    FileWriter.write(configPath, defaultConfig);
+    FileWriter.write(configPath, configContent);
   }
 
-  console.log("✅ Setup complete! You can now run: npx nextjs-panel make:resource <Model>");
+  // 6. Final Instructions
+  console.log("\n✅ Setup successful!");
+  if (!hasTailwind) {
+    console.warn("⚠️  Note: Tailwind CSS was not detected. UI will fall back to standard CSS.");
+  }
+  console.log(`
+Next steps:
+1. Add your database URL to .env
+2. Define models in prisma/schema.prisma
+3. Run: npx nextjs-panel make:resource <ModelName>
+  `);
 }
