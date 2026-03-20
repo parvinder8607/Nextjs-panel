@@ -12,6 +12,7 @@ export function setupCommand() {
   const rootDir = ProjectPaths.getRoot();
   
   // 1. Run Environment Checks
+  const alias = ProjectAnalyzer.getAlias() || './';
   const isTs = ProjectAnalyzer.isTypeScript();
   const hasTailwind = ProjectAnalyzer.hasTailwind();
   const routerType = ProjectAnalyzer.getRouterType();
@@ -49,6 +50,7 @@ export function setupCommand() {
         hasTailwind, 
         routerType 
       });
+      console.log(`📝 Generating ${file.target}...`);
       FileWriter.write(path.join(adminDir, file.target), content);
     });
   }
@@ -76,6 +78,13 @@ export function setupCommand() {
 export const panelConfig = {
   title: "Admin Panel",
   basePath: "/admin",
+  // Project Structure Metadata
+  metadata: {
+    isTypeScript: ${isTs},
+    routerType: "${routerType}",
+    alias: "${alias}",
+    srcDir: ${fs.existsSync(path.join(process.cwd(), 'src'))}
+  },
   colors: {
     primary: "#000000"
   }

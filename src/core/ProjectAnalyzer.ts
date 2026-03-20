@@ -45,4 +45,30 @@ export class ProjectAnalyzer {
     if (isJsx) return isTs ? 'tsx' : 'jsx';
     return isTs ? 'ts' : 'js';
   }
+
+  /**
+   * Determine project using alias
+   */
+  static getAlias(): string | null {
+    const root = process.cwd();
+    const tsConfigPath = path.join(root, 'tsconfig.json');
+    const jsConfigPath = path.join(root, 'jsconfig.json');
+    
+    const configPath = fs.existsSync(tsConfigPath) ? tsConfigPath : (fs.existsSync(jsConfigPath) ? jsConfigPath : null);
+
+    if (configPath) {
+      try {
+        const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+        const paths = config.compilerOptions?.paths;
+        if (paths) {
+          // Look for the first alias that points to src or root
+          const alias = Object.keys(paths).find(key => key.includes('/*'));
+          return alias ? alias.replace('/*', '') : null;
+        }
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
 }

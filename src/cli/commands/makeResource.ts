@@ -1,9 +1,9 @@
 import { ProjectAnalyzer } from "../../core/ProjectAnalyzer";
 
 export function makeResourceCommand(name: string) {
-  const analyzer = new ProjectAnalyzer();
+  
 
-  if (!analyzer.usesAppRouter()) {
+  if (!ProjectAnalyzer.getRouterType()) {
     console.error("❌ App Router not detected");
     process.exit(1);
   }
