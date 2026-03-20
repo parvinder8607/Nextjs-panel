@@ -9,7 +9,7 @@ export function runCLI(argv: string[]) {
       setupCommand();
       break;
 
-    case "make:resource"
+    case "make:resource":
       if (!arg) {
         console.error("❌ Resource name is required");
         process.exit(1);

@@ -1,35 +1,41 @@
-import ejs from 'ejs';
+import * as ejs from 'ejs'; // Use * as ejs for better compatibility
 import fs from 'fs';
 import path from 'path';
 
 export class TemplateEngine {
   /**
    * Renders an EJS template with the provided data.
-   * @param templatePath Relative path from the 'src/templates' directory (e.g., 'layout/Sidebar.ejs')
-   * @param data Object containing variables for the template
    */
   static render(templatePath: string, data: any): string {
-    // 1. Resolve the path to the template file
-    // We use __dirname to ensure it finds the templates folder inside the installed package
-    const fullPath = path.join(__dirname, '../../src/templates', templatePath);
+    // 1. Resolve path that works both in 'dev' and 'dist'
+    // This assumes your build script copies templates to dist/src/templates
+    const fullPath = path.resolve(__dirname, '../templates', templatePath);
 
     if (!fs.existsSync(fullPath)) {
-      throw new Error(`❌ Template not found at: ${fullPath}`);
+      // Fallback for local development if the above fails
+      const devPath = path.resolve(process.cwd(), 'src/templates', templatePath);
+      if (!fs.existsSync(devPath)) {
+        throw new Error(`❌ Template not found at: ${fullPath} or ${devPath}`);
+      }
+      return this.executeRender(devPath, data);
     }
 
-    // 2. Read the template file content
-    const templateStr = fs.readFileSync(fullPath, 'utf-8');
+    return this.executeRender(fullPath, data);
+  }
 
-    // 3. Render using EJS
+  private static executeRender(filePath: string, data: any): string {
+    const templateStr = fs.readFileSync(filePath, 'utf-8');
+
     try {
       return ejs.render(templateStr, {
         ...data,
-        // Useful helper functions you might want in your templates:
-        capitalize: (s: string) => s.charAt(0).toUpperCase() + s.slice(1),
-        lowercase: (s: string) => s.toLowerCase(),
+        // Helper functions
+        capitalize: (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '',
+        lowercase: (s: string) => s ? s.toLowerCase() : '',
+        pluralize: (s: string) => s ? (s.endsWith('y') ? s.slice(0, -1) + 'ies' : s + 's') : '',
       });
     } catch (error) {
-      console.error(`❌ Error rendering template: ${templatePath}`);
+      console.error(`❌ Error rendering template at: ${filePath}`);
       throw error;
     }
   }
