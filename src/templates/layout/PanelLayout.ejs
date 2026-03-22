@@ -1,10 +1,19 @@
+<% if (isTs) { %>
+import React, { ReactNode } from 'react';
+
+interface AdminLayoutProps {
+  children: ReactNode;
+}
+<% } else { %>
+import React from 'react';
+<% } %>
 import { Sidebar } from './Sidebar';
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }<% if (isTs) { %>: AdminLayoutProps <% } %>) {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="flex-1 p-8 bg-white">
+      <main className="<%= hasTailwind ? 'flex-1 p-8 bg-white min-h-screen' : 'admin-main-content' %>">
         {children}
       </main>
     </div>

@@ -13,6 +13,7 @@ export function setupCommand() {
   
   // 1. Run Environment Checks
   const alias = ProjectAnalyzer.getAlias() || './';
+  const srcDir = fs.existsSync(path.join(process.cwd(), 'src'));
   const isTs = ProjectAnalyzer.isTypeScript();
   const hasTailwind = ProjectAnalyzer.hasTailwind();
   const routerType = ProjectAnalyzer.getRouterType();
@@ -48,7 +49,9 @@ export function setupCommand() {
       const content = TemplateEngine.render(file.template, { 
         isTs, 
         hasTailwind, 
-        routerType 
+        routerType ,
+        alias,
+        srcDir
       });
       console.log(`📝 Generating ${file.target}...`);
       FileWriter.write(path.join(adminDir, file.target), content);
