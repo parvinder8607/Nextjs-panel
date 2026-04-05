@@ -1,0 +1,35 @@
+import { BaseResource<% if (isTs) { %>, ResourceColumn, ResourceField<% } %> } from './BaseResource';
+
+export class <%= name %>Resource extends BaseResource {
+  static model = "<%= name %>";
+  static label = "<%= name %>s";
+
+  /**
+   * Defines table columns for the list view
+   */
+  static table()<% if (isTs) { %>: ResourceColumn[]<% } %> {
+    return [
+      <% fields.forEach(field => { %>
+      { key: "<%= field.name %>", label: "<%= field.name.charAt(0).toUpperCase() + field.name.slice(1) %>" },
+      <% }) %>
+    ];
+  }
+
+  /**
+   * Defines form fields for create/edit
+   */
+  static form()<% if (isTs) { %>: ResourceField[]<% } %> {
+    return [
+      <% fields.forEach(field => { %>
+      <% if (!field.isId) { %>
+      {
+        name: "<%= field.name %>",
+        label: "<%= field.name.charAt(0).toUpperCase() + field.name.slice(1) %>",
+        type: "<%= field.type === 'Int' ? 'number' : field.type === 'Boolean' ? 'checkbox' : 'text' %>",
+        required: <%= field.isRequired %>
+      },
+      <% } %>
+      <% }) %>
+    ];
+  }
+}

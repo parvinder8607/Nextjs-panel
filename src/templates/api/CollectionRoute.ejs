@@ -1,0 +1,23 @@
+import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export async function GET() {
+  try {
+    const items = await prisma.<%= name.toLowerCase() %>.findMany();
+    return NextResponse.json(items);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
+  }
+}
+
+export async function POST(request<%= isTs ? ': Request' : '' %>) {
+  try {
+    const body = await request.json();
+    const item = await prisma.<%= name.toLowerCase() %>.create({ data: body });
+    return NextResponse.json(item, { status: 201 });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to create entry' }, { status: 400 });
+  }
+}

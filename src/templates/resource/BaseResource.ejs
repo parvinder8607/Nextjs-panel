@@ -1,0 +1,28 @@
+<% if (isTs) { %>
+export interface ResourceColumn {
+  key: string;
+  label: string;
+  sortable?: boolean;
+}
+
+export interface ResourceField {
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'checkbox' | 'date';
+  required: boolean;
+}
+<% } %>
+
+export abstract class BaseResource {
+  static model: string;
+  static label: string;
+
+  // Explicitly type the return as ResourceColumn[] instead of letting TS infer never[]
+  static table()<% if (isTs) { %>: ResourceColumn[]<% } %> {
+    return [];
+  }
+
+  static form()<% if (isTs) { %>: ResourceField[]<% } %> {
+    return [];
+  }
+}
